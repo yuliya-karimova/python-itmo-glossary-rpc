@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package glossary;
+
+import "google/protobuf/empty.proto";
+
+// Запрос на получение термина
+message TermRequest {
+  string term_name = 1;
+}
+
+// Запрос на получение связей термина
+message RelationsRequest {
+  string term_name = 1;
+  int32 max_depth = 2;  // Максимальная глубина поиска связей
+}
+
+// Запрос на поиск пути между терминами
+message PathRequest {
+  string source_term = 1;
+  string target_term = 2;
+  int32 max_depth = 3;
+}
+
+// Определение термина
+message Term {
+  string name = 1;
+  string definition = 2;
+}
+
+// Связь между терминами
+message Relation {
+  string source_term = 1;
+  string target_term = 2;
+  string relation_type = 3;  // Тип связи (например, "включает подход", "реализуется через")
+}
+
+// Ответ с информацией о термине
+message TermResponse {
+  Term term = 1;
+  bool found = 2;
+}
+
+// Ответ со списком связей
+message RelationsResponse {
+  repeated Relation relations = 1;
+  int32 total_count = 2;
+}
+
+// Ответ с путем между терминами
+message PathResponse {
+  repeated string path = 1;  // Последовательность терминов от источника к цели
+  bool path_exists = 2;
+  string message = 3;
+}
+
+// Ответ со списком всех терминов
+message AllTermsResponse {
+  repeated Term terms = 1;
+  int32 total_count = 2;
+}
+
+// Сервис для работы с графом терминов
+service GlossaryService {
+  // Получить информацию о термине
+  rpc GetTerm (TermRequest) returns (TermResponse);
+  
+  // Получить все термины
+  rpc GetAllTerms (google.protobuf.Empty) returns (AllTermsResponse);
+  
+  // Получить связи термина (соседи в графе)
+  rpc GetTermRelations (RelationsRequest) returns (RelationsResponse);
+  
+  // Найти путь между двумя терминами
+  rpc FindPath (PathRequest) returns (PathResponse);
+}
