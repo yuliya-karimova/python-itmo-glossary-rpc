@@ -57,7 +57,7 @@ class InteractiveGraphVisualizer:
             print(f"Ошибка: файл {filename} не найден")
             sys.exit(1)
     
-    def visualize(self, output_file='glossary_graph_interactive.html', layout='spring'):
+    def visualize(self, output_file='index.html', layout='spring'):
         """
         Создает интерактивную визуализацию графа.
         
@@ -355,12 +355,12 @@ def main():
     # Создаем интерактивную визуализацию
     print("Создание интерактивной визуализации...")
     visualizer.visualize(
-        output_file='glossary_graph_interactive.html',
+        output_file='index.html',
         layout='spring'
     )
     
     print("\nИнтерактивная визуализация завершена!")
-    print("Откройте файл glossary_graph_interactive.html в браузере")
+    print("Откройте файл index.html в браузере")
 
 
 if __name__ == '__main__':
