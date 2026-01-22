@@ -4,6 +4,7 @@
 """
 import csv
 import sys
+import math
 from collections import defaultdict
 
 try:
@@ -77,15 +78,74 @@ class InteractiveGraphVisualizer:
                 G.add_edge(source, target, label=relation_type)
         
         # Создаем автоматическую раскладку графа
+        # Используем увеличенные параметры для предотвращения пересечений узлов
+        # k - оптимальное расстояние между узлами (учитывая размер узла 100 пикселей)
         if layout == 'spring':
-            pos = nx.spring_layout(G, k=2, iterations=50, seed=42)
+            # Значительно увеличиваем k для предотвращения пересечений (узлы размером 100)
+            # Минимальное расстояние между центрами узлов должно быть > 100 (размер узла)
+            pos = nx.spring_layout(
+                G, 
+                k=5,  # Значительно увеличено для предотвращения пересечений
+                iterations=300,  # Больше итераций для лучшей конвергенции
+                seed=42
+            )
         elif layout == 'circular':
-            pos = nx.circular_layout(G)
+            # Для circular layout масштабируем область размещения
+            pos = nx.circular_layout(G, scale=3)
         elif layout == 'kamada_kawai':
-            pos = nx.kamada_kawai_layout(G)
+            # Kamada-Kawai обычно лучше предотвращает пересечения
+            pos = nx.kamada_kawai_layout(G, scale=3)
         else:
-            # По умолчанию используем spring layout
-            pos = nx.spring_layout(G, k=2, iterations=50, seed=42)
+            # По умолчанию используем kamada_kawai, так как он лучше предотвращает пересечения
+            pos = nx.kamada_kawai_layout(G, scale=3)
+        
+        # Post-processing: проверяем и исправляем пересечения узлов
+        # Минимальное расстояние между центрами узлов = размер узла (100)
+        node_size = 100
+        min_distance = node_size * 1.2  # Добавляем 20% запас
+        
+        # Исправляем пересечения итеративно
+        max_iterations = 50
+        for iteration in range(max_iterations):
+            overlaps_found = False
+            nodes_list = list(G.nodes())
+            
+            for i, node1 in enumerate(nodes_list):
+                if node1 not in pos:
+                    continue
+                x1, y1 = pos[node1]
+                
+                for j, node2 in enumerate(nodes_list[i+1:], start=i+1):
+                    if node2 not in pos:
+                        continue
+                    x2, y2 = pos[node2]
+                    
+                    # Вычисляем расстояние между узлами
+                    distance = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+                    
+                    # Если узлы слишком близко, раздвигаем их
+                    if distance < min_distance:
+                        overlaps_found = True
+                        # Вычисляем направление раздвижения
+                        if distance > 0:
+                            dx = (x2 - x1) / distance
+                            dy = (y2 - y1) / distance
+                        else:
+                            # Если узлы в одной точке, раздвигаем случайно
+                            import random
+                            random.seed(42 + iteration)
+                            angle = random.uniform(0, 2 * math.pi)
+                            dx = math.cos(angle)
+                            dy = math.sin(angle)
+                        
+                        # Раздвигаем узлы
+                        move_distance = (min_distance - distance) / 2
+                        pos[node1] = (x1 - dx * move_distance, y1 - dy * move_distance)
+                        pos[node2] = (x2 + dx * move_distance, y2 + dy * move_distance)
+            
+            # Если пересечений не найдено, выходим
+            if not overlaps_found:
+                break
         
         # Подготавливаем данные для edges
         edge_x = []
