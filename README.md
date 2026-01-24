@@ -1,6 +1,9 @@
 # python-itmo-glossary-rpc
 
-Деплой тут https://yuliya-karimova.github.io/python-itmo-glossary-rpc/
+Деплой тут https://yuliya-karimova.github.io/python-itmo-glossary-rpc/  
+Отчет - [REPORT.md](REPORT.md)
+
+![image](image.png)
 
 Проект реализует gRPC-сервис для работы с графом терминов глоссария с использованием Protocol Buffers.
 
